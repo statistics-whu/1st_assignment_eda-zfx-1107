@@ -1,7 +1,7 @@
 ---
-title: "第一次作业你的报告题目"
+title: "曾飞雪 2024281050966 第一次作业"
 CJKmainfont: Songti SC
-author: "your name"
+author: "曾飞雪"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
@@ -22,22 +22,26 @@ knitr::opts_chunk$set(echo = FALSE,error = FALSE, warning = FALSE, message = FAL
                       out.width = "100%", split = FALSE, fig.align = "center")
 #load library
 library(tidyverse)
-library(kableExtra)
 library(lubridate)
 library(scales)
-library(plotly)
-library(patchwork)
-library(ggrepel)
 ```
+```{r}
+#读取数据
+library(tidyverse)
+data <- read.csv("C:/Users/pc/Desktop/2023-09-12_cleaned.csv")
+data
+str(data) 
+names(data)
+summary(data)
 
 # 你的主要发现
 
 1. 发现1
-
+ 大多数房屋都朝向南
 1. 发现2
-  
+ 几乎所有房源的客厅数量都是1-2个 
 1. 发现3
-    
+  白沙洲的二手房数量最多  
 
 # 数据介绍
 
@@ -78,71 +82,124 @@ lj %>%
 
 各变量的简短信息：
 ```{r}
-glimpse(lj)
+glimpse(data)
 ```
 
 各变量的简短统计：
 ```{r}
-summary(lj)
+summary(data)
 ```
-
+mean(data$price_sqm)
+median(data$price_sqm)
+quantile(data$price_sqm)
+range(data$price_sqm)
+IQR(data$price_sqm)
+var(data$price_sqm)
+sd(data$price_sqm)
+mad(data$price_sqm)
 可以看到：
 
-- 直观结论1
+- 直观结论1：房价均值是155万，房价的中位数是137万
 
-- 直观结论2
+- 直观结论2：卧室最多的有7间，平均每个房子有2.695个卧室
 
-- ...
+- 直观结论3：武昌的二手房数量比汉口多
 
 # 探索性分析
 
 ## 变量1的数值描述与图形
+data<-C
+data%>%
+ggplot(aes(x = property_t_height, y = price_sqm))+
+geom_point() +  
+  geom_smooth(method = "lm", se = TRUE)
+发现：楼层高低对房屋单价的影响
 
-发现：
+- 发现1# 总层数越高，单价也越贵。
 
-- 发现1
-
-- 发现2
+- 发现2#大多数房屋的总层数在20层左右
 
 ## 变量2的数值描述与图形
+name_top10 <- C %>%
+ group_by(property_name) %>%
+ summarise(count = n()) %>%
+ arrange(desc(count)) %>%
+ head(10)
+name_top10
+ggplot(name_top10, aes(x = property_name, y = count)) +
+ geom_bar(stat = "identity") +
+ labs(title = "出现最多次数的小区名字",
+      x = "小区名字",
+      y = "出现次数")
+发现：2023年小区出现次数前十的名字
+name_top10 <- data %>%
+ group_by(property_name) %>%
+ summarise(count = n()) %>%
+ arrange(desc(count)) %>%
+ head(10)
+name_top10
+ggplot(name_top10, aes(x = property_name, y = count)) +
+ geom_bar(stat = "identity") +
+ labs(title = "出现最多次数的小区名字",
+      x = "小区名字",
+      y = "出现次数")
+- 发现1 保利中央公馆和东立国际出现的次数最多。
 
-发现：
-
-- 发现1
-
-- 发现2
+- 发现2 恒大名都出现的次数较少
 
 ## 变量...的数值描述与图形
+data <- na.omit(data) 
+data$building_area <- as.numeric(as.character(data$building_area))
+threshold <- 100  
+data$area_category <- ifelse(data$building_area > threshold, "大面积", "小面积")
+area_counts <- table(data$area_category)
+print(area_counts) 
+area_ratio <- prop.table(area_counts)  
+print(area_ratio) 
+library(ggplot2)  
+ggplot(data, aes(x = area_category)) + geom_bar(fill = "red") + labs(title = "房屋面积分类", x = "面积类别", y = "数量")
+发现：二手房源中大面积的多还是小面积的房源多
 
-发现：
+- 发现1：小面积的房源比大面积的房源多
 
-- 发现1
-
-- 发现2
+- 发现2：二者数量相差不大
 
 ## 探索问题1
-
+# 是否近地铁如何影响房屋的单价
+data$near_subway <- as.factor(data$near_subway == "近地铁")  
+levels(data$near_subway) <- data("否", "是")
+region_popularity <- data %>%  
+  group_by(property_region) %>%  
+  summarise(num_properties = n(), .groups = "drop") %>%  
+  arrange(desc(num_properties)) 
+print(region_popularity)   
+ggplot(data, aes(x = near_subway, y = price_sqm)) +  
+  geom_boxplot()  
+  t_test_result <- t.test(price_sqm ~ near_subway, data = data)  
+print(t_test_result)
 发现：
 
-- 发现1
+- 发现1 是否近地铁影响房屋的单价，靠近地铁的房屋单价要高
 
-- 发现2
+- 发现2  白沙洲近地铁的房源最多
 
 ## 探索问题2
 
-发现：
+发现：房屋单价是否受房屋面积的影响
+ggplot(data, aes(x = building_area, y = price_sqm)) +  
+  geom_point() +  
+  geom_smooth(method = "lm", se = TRUE)
+- 发现1 大致上来看房屋面积越大，房屋单价越高
 
-- 发现1
-
-- 发现2
+- 发现2 大多数房源房屋的面积都在100平米左右
 
 ## 探索问题3
 
-发现：
+发现：房屋单价是否受房屋装修影响
 
-- 发现1
+- 发现1 目前的房源中，精装房的数量最多
 
-- 发现2
+- 发现2 房屋单价受装修的影响，精装房的房屋单价均值相对而言最高，
 
 ---
 
@@ -150,5 +207,7 @@ summary(lj)
 
 用1-3段话总结你的发现。
 
-
+近几年武汉的房源供应情况以白沙洲，盘龙城等较为偏远的地方居多，市中心房源供应的情况较少，由此可见市区土地有限，人口在逐渐往郊区外扩。
+房屋的单价与房屋所在的地段，附近是否有地铁，房屋是否为精装修，房屋的层高以及房屋的面积均相关。一般在其他条件相同的情况下地段越中心，附近有地铁，房屋为精装修，楼高偏高，面积大的房屋单价越高。
+虽然房屋的单价受房屋面积的影响，面积打的房屋相对单价越高，但是小面积和大面积的市场供需来看，小面积房屋更多。
 
